@@ -42,7 +42,12 @@
     "browserify-css": "^0.8.3",
     "budo": "^7.1.0",
     "webpack": "^1.12.9",
-    "ghpages": "0.0.3"
+    "ghpages": "0.0.3",
+    "shx": "^0.1.1",
+    "snazzy": "^4.0.0",
+    "semistandard": "^8.0.0",
+    "shelljs": "^0.7.0",
+    "inquirer": "^1.0.2"
   },
   "semistandard": {
     "ignore": [
