@@ -1,6 +1,8 @@
 ## aframe-alongpath-component
 A component for [A-Frame](https://aframe.io) that allows entities to follow predefined paths.
 
+Thanks to https://jsbin.com/dasefeh/edit?html,output for the basic concept.
+
 ### Properties
 
 | Property | Description                                                                          | Default Value |
