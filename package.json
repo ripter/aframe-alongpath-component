@@ -1,0 +1,45 @@
+{
+  "name": "aframe-alongpath",
+  "version": "0.1.0",
+  "description": "A-Frame Component that allows entities to follow predefined paths",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "build": "browserify examples/main.js -o examples/build.js",
+    "dev": "budo examples/main.js:build.js --dir examples --port 8000 --live --open",
+    "dist": "webpack index.js dist/aframe-alongpath-component.js && webpack -p index.js dist/aframe-alongpath-component.min.js",
+    "postpublish": "npm run dist",
+    "preghpages": "npm run build && rm -rf gh-pages && cp -r examples gh-pages",
+    "ghpages": "npm run preghpages && ghpages -p gh-pages"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/protyze/aframe-alongpath.git"
+  },
+  "keywords": [
+    "aframe",
+    "aframe-component",
+    "aframe-vr",
+    "vr",
+    "mozvr",
+    "webvr"
+  ],
+  "author": "protyze <jan.azzati@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/protyze/aframe-alongpath/issues"
+  },
+  "homepage": "https://github.com/protyze/aframe-alongpath#readme",
+  "dependencies": {
+    "aframe": "^0.3.1"
+  },
+  "devDependencies": {
+    "browserify": "^12.0.1",
+    "browserify-css": "^0.8.3",
+    "budo": "^7.1.0",
+    "webpack": "^1.12.9",
+    "ghpages": "0.0.3"
+  }
+}
