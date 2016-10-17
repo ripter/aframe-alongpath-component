@@ -1,6 +1,6 @@
 {
-  "name": "aframe-alongpath",
-  "version": "0.1.0",
+  "name": "aframe-alongpath-component",
+  "version": "0.1.1",
   "description": "A-Frame Component that allows entities to follow predefined paths",
   "main": "index.js",
   "directories": {
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/protyze/aframe-alongpath.git"
+    "url": "git+https://github.com/protyze/aframe-alongpath-component.git"
   },
   "keywords": [
     "aframe",
@@ -31,9 +31,9 @@
   "author": "protyze <jan.azzati@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/protyze/aframe-alongpath/issues"
+    "url": "https://github.com/protyze/aframe-alongpath-component/issues"
   },
-  "homepage": "https://github.com/protyze/aframe-alongpath#readme",
+  "homepage": "https://github.com/protyze/aframe-alongpath-component#readme",
   "dependencies": {
     "aframe": "^0.3.1"
   },
