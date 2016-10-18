@@ -3,6 +3,8 @@ A component for [A-Frame](https://aframe.io) that allows entities to follow pred
 
 Thanks to https://jsbin.com/dasefeh/edit?html,output for the basic concept.
 
+![](http://lab.immersiveweb.ch/assets/aframe_alongpath_component.gif)
+
 ### Properties
 
 | Property | Description                                                                          | Default Value |
