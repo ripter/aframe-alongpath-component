@@ -12,7 +12,7 @@ Thanks to https://jsbin.com/dasefeh/edit?html,output for the basic concept.
 | dur      | Duration in milliseconds for the object to follow the entire path                    | 1000          |
 | delay    | Number of milliseconds to wait for the animation to begin                            | 2000          |
 | loop     | Whether or not the animation should loop                                             | false         |
-| inspect  | Whether or not the animation path should be visible and editable in A-Frame Inspector| tour          |
+| inspect  | Whether or not the animation path should be visible and editable in A-Frame Inspector| true          |
 
 
 ### Usage
