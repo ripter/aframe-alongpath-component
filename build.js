@@ -17,7 +17,7 @@ AFRAME.registerComponent('alongpath', {
         dur: {default: 1000},
         delay: {default: 2000},
         loop: {default: false},
-        inspect: {default: true}
+        inspect: {default: false}
     },
 
     init: function () {
@@ -33,13 +33,21 @@ AFRAME.registerComponent('alongpath', {
             this.createCurve();
         }
 
+        // Create/Update Debug-Visuals when needed or
+        // remove Debug-Visuals when disabled
         if (this.data.inspect) {
-            this.inspectorElementChanged = this.inspectorElementChanged.bind(this);
 
-            // Add Elements to visualize the Path
-            // and allow for path editing in the
-            // A-Frame Inspector
-            this.createInspectorElements();
+            if (!oldData.inspect || oldData.inspect === false) {
+                this.inspectorElementChanged = this.inspectorElementChanged.bind(this);
+
+                // Add Elements to visualize the Path
+                // and allow for path editing in the
+                // A-Frame Inspector
+                this.createInspectorElements();
+            }
+
+            this.drawCurveLine();
+
         } else if (oldData.inspect === true) {
             this.removeInspectorElements();
         }
@@ -128,18 +136,28 @@ AFRAME.registerComponent('alongpath', {
     createInspectorElements: function() {
         this.removeInspectorElements();
 
+        var debugRootElement = document.querySelector(".alongpath-debug-root");
+
+        if (!debugRootElement) {
+            var debugRoot = document.createElement("a-entity");
+            debugRootElement = this.el.sceneEl.appendChild(debugRoot);
+            debugRootElement.setAttribute("class", "alongpath-debug-root");
+        }
+
+        this.inspectorRootElement = debugRootElement;
+
         this.inspectorElements = new Array();
 
         for (var i = 0; i < this.pathpoints.length; i++) {
             var pathPoint = document.createElement("a-box");
-            var pathPointEl = this.el.sceneEl.appendChild(pathPoint);
+            var pathPointEl = this.inspectorRootElement.appendChild(pathPoint);
 
             AFRAME.utils.entity.setComponentProperty(pathPointEl, "position", AFRAME.utils.coordinates.stringify(this.pathpoints[i]));
             AFRAME.utils.entity.setComponentProperty(pathPointEl, "width", 0.1);
             AFRAME.utils.entity.setComponentProperty(pathPointEl, "height", 0.1);
             AFRAME.utils.entity.setComponentProperty(pathPointEl, "depth", 0.1);
             AFRAME.utils.entity.setComponentProperty(pathPointEl, "color", "red");
-            pathPointEl.setAttribute("className", "alongpath-debug");
+            pathPointEl.setAttribute("class", "alongpath-debug");
             pathPointEl.setAttribute("visible", true);
 
             pathPointEl.addEventListener("componentchanged", this.inspectorElementChanged);
@@ -157,7 +175,7 @@ AFRAME.registerComponent('alongpath', {
         }
 
         var lineEntity = document.createElement("a-entity");
-        var lineEntityEl = this.el.sceneEl.appendChild(lineEntity);
+        var lineEntityEl = this.inspectorRootElement.appendChild(lineEntity);
 
         var lineMaterial = new THREE.LineBasicMaterial({
             color: "red"
@@ -175,14 +193,27 @@ AFRAME.registerComponent('alongpath', {
     },
 
     removeInspectorElements: function() {
+        // Remove the Inspector-Boxes
         if(this.inspectorElements) {
             for (var i = 0; i < this.inspectorElements.length; i++) {
                 this.inspectorElements[i].parentNode.removeChild(this.inspectorElements[i]);
             }
         }
 
+        // Remove the curve
         if(this.inspectorCurve) {
             this.inspectorCurve.parentNode.removeChild(this.inspectorCurve);
+        }
+
+        // Remove also the Root Element if it has
+        // no more children
+        if (this.inspectorRootElement) {
+            if(!this.inspectorRootElement.childNodes || this.inspectorRootElement.childNodes.length == 0) {
+                if (this.inspectorRootElement.parentNode) {
+                    this.inspectorRootElement.parentNode.removeChild(this.inspectorRootElement);
+                }
+                this.inspectorRootElement = null;
+            }
         }
 
         this.inspectorElements = null;
@@ -204,9 +235,7 @@ AFRAME.registerComponent('alongpath', {
         var newPath = newPathPoints.join(" ");
 
         if (newPath != "" && newPath != this.data.path) {
-            this.data.path = newPath;
-            this.createCurve();
-            this.drawCurveLine();
+            AFRAME.utils.entity.setComponentProperty(this.el, "alongpath.path", newPath);
         }
     }
 });
