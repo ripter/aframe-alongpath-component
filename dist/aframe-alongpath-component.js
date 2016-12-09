@@ -54,10 +54,11 @@
 	 */
 	AFRAME.registerComponent('alongpath', {
 	    schema: {
+	        // TODO: Parse path-points directly here
 	        path: {default: ''},
 	        closed: {default: false},
 	        dur: {default: 1000},
-	        delay: {default: 2000},
+	        delay: {default: 0},
 	        loop: {default: false},
 	        inspect: {default: false}
 	    },
@@ -71,13 +72,14 @@
 	        // Only restart following the path when
 	        // Path-Data has been changed.
 	        if (!oldData.path || oldData.path != this.data.path) {
+	            this.curve = null;
 	            // Create Curve from Path
 	            this.createCurve();
 	        }
 
 	        // Create/Update Debug-Visuals when needed or
 	        // remove Debug-Visuals when disabled
-	        if (this.data.inspect) {
+	        if (this.data.inspect && this.curve) {
 
 	            if (!oldData.inspect || oldData.inspect === false) {
 	                this.inspectorElementChanged = this.inspectorElementChanged.bind(this);
@@ -88,7 +90,9 @@
 	                this.createInspectorElements();
 	            }
 
+	            // Update the Debug-Visuals
 	            this.drawCurveLine();
+	            this.synchInspectorElementPosition();
 
 	        } else if (oldData.inspect === true) {
 	            this.removeInspectorElements();
@@ -97,6 +101,8 @@
 	    },
 
 	    createCurve: function () {
+
+	        // TODO: Parse path-points in schema function
 	        this.pathpoints = this.data.path.split(' ').map(function (p) {
 	            p = p.split(',');
 	            return new THREE.Vector3(
@@ -106,38 +112,44 @@
 	            );
 	        });
 
-	        var curve = new THREE.CatmullRomCurve3(this.pathpoints);
-	        curve.closed = this.data.closed;
+	        // Only create curve when there are more than 2 pathpoints
+	        if (this.pathpoints.length >= 2) {
+	            var curve = new THREE.CatmullRomCurve3(this.pathpoints);
+	            curve.closed = this.data.closed;
 
-	        this.curve = curve;
+	            this.curve = curve;
+	        } else {
+	            console.warn("The path needs at least 2 path-points!");
+	        }
 
 	        // Reset to initial state
 	        this.interval = 0;
 	        this.el.removeState("endofpath");
+
 	    },
 
 	    tick: function (time, timeDelta) {
 
-	        // Only update position if we didn't reach
-	        // the end of the path
-	        if (!this.el.is("endofpath")) {
-	            this.interval = this.interval + timeDelta;
+	        if (this.curve) {
+	            // Only update position if we didn't reach
+	            // the end of the path
+	            if (!this.el.is("endofpath")) {
+	                this.interval = this.interval + timeDelta;
 
-	            var i = 0;
+	                var i = 0;
 
-	            if (this.interval - this.data.delay >= this.data.dur) {
-	                // Time is up, we should be at the end of the path
-	                i = 1;
-	            } else if ((this.interval - this.data.delay < 0)) {
-	                // We are still waiting for the delay-time to finish
-	                // so keep entity at the beginning of the path
-	                i = 0;
-	            } else {
-	                // Update path position based on timing
-	                i = (this.interval - this.data.delay) / this.data.dur;
-	            }
+	                if (this.interval - this.data.delay >= this.data.dur) {
+	                    // Time is up, we should be at the end of the path
+	                    i = 1;
+	                } else if ((this.interval - this.data.delay < 0)) {
+	                    // We are still waiting for the delay-time to finish
+	                    // so keep entity at the beginning of the path
+	                    i = 0;
+	                } else {
+	                    // Update path position based on timing
+	                    i = (this.interval - this.data.delay) / this.data.dur;
+	                }
 
-	            try {
 	                if ((this.data.loop === false) && i >= 1) {
 	                    // We have reached the end of the path and are not going
 	                    // to loop back to the beginning therefore set final state
@@ -164,15 +176,16 @@
 	                        this.el.addState("moveonpath");
 	                    }
 	                }
-	            } catch (ex) {
 	            }
 	        }
+
 	    },
 
 	    remove: function () {
-	        this.el.setAttribute("position", this.initialPosition);
 
+	        this.el.setAttribute("position", this.initialPosition);
 	        this.removeInspectorElements();
+
 	    },
 
 	    createInspectorElements: function() {
@@ -260,6 +273,14 @@
 
 	        this.inspectorElements = null;
 	        this.inspectorCurve = null;
+	    },
+
+	    synchInspectorElementPosition: function() {
+	        for (var i = 0; i < this.pathpoints.length; i++) {
+	            if (this.inspectorElements[i]) {
+	                AFRAME.utils.entity.setComponentProperty(this.inspectorElements[i], "position", AFRAME.utils.coordinates.stringify(this.pathpoints[i]));
+	            }
+	        }
 	    },
 
 	    inspectorElementChanged: function(e) {
