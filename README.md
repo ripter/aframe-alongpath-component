@@ -38,7 +38,7 @@ Install and use by directly including the [browser files](dist):
 <body>
   <a-scene>
     <a-sphere color="red" radius="0.25" position="0 0 0"
-              alongpath="path:2,2,-5 -2,1,-2.5 0,1,-1; closed:false; dur:5000; delay:4000; inspector:false;">
+              alongpath="path:2,2,-5 -2,1,-2.5 0,1,-1; closed:false; dur:5000; delay:4000; inspect:false;">
     </a-sphere>
   </a-scene>
 </body>
