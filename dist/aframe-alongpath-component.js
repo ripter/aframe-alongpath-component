@@ -60,6 +60,7 @@
 	        dur: {default: 1000},
 	        delay: {default: 0},
 	        loop: {default: false},
+	        rotate: {default: false},
 	        inspect: {default: false}
 	    },
 
@@ -175,6 +176,20 @@
 	                    if (!this.el.is("moveonpath")) {
 	                        this.el.addState("moveonpath");
 	                    }
+	                }
+
+	                // Update Rotation of Entity
+	                // Based on http://jsfiddle.net/qGPTT/133/
+	                if (this.data.rotate === true) {
+	                    var axis = new THREE.Vector3();
+	                    var up = new THREE.Vector3(0, 1, 0);
+	                    var tangent = this.curve.getTangentAt(i).normalize();
+
+	                    axis.crossVectors(up, tangent).normalize();
+
+	                    var radians = Math.acos(up.dot(tangent));
+
+	                    this.el.object3D.quaternion.setFromAxisAngle(axis, radians);
 	                }
 	            }
 	        }
