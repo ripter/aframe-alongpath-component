@@ -1,6 +1,6 @@
 {
   "name": "aframe-alongpath-component",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "A-Frame Component that allows entities to follow predefined paths",
   "main": "index.js",
   "directories": {

@@ -14,7 +14,22 @@ Thanks to https://jsbin.com/dasefeh/edit?html,output for the basic concept.
 | dur      | Duration in milliseconds for the object to follow the entire path                    | 1000          |
 | delay    | Number of milliseconds to wait for the animation to begin                            | 2000          |
 | loop     | Whether or not the animation should loop                                             | false         |
+| rotate   | Whether or not the Entity should adjust it's rotation while moving along the path    | false         |
 | inspect  | Whether or not the animation path should be visible and editable in A-Frame Inspector| false         |
+
+### Events
+
+| Event    | Description                                                 |
+| -------- | -----------                                                 |
+| movingstarted     | The Entity is about to start moving along the path |
+| movingended   | The Entity has completed moving along the path         |
+
+### States
+
+| State    | Description                                      |
+| -------- | -----------                                      |
+| moveonpath     | The Entity currently moving along the path |
+| endofpath   | The Entity has completed moving along the path|
 
 ### Usage with A-Frame Inspector
 
@@ -31,7 +46,7 @@ Install and use by directly including the [browser files](dist):
 ```html
 <head>
   <title>My A-Frame Scene</title>
-  <script src="https://aframe.io/releases/0.3.0/aframe.min.js"></script>
+  <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
   <script src="https://rawgit.com/protyze/aframe-alongpath-component/master/dist/aframe-alongpath-component.min.js"></script>
 </head>
 

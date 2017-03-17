@@ -156,6 +156,7 @@
 	                    // to loop back to the beginning therefore set final state
 	                    this.el.removeState("moveonpath");
 	                    this.el.addState("endofpath");
+	                    this.el.emit("movingended");
 
 	                    // Set the end-position
 	                    if (this.data.closed) {
@@ -167,15 +168,18 @@
 	                    // We have reached the end of the path
 	                    // but we are looping through the curve,
 	                    // so restart here.
+	                    this.el.emit("movingended");
 	                    this.interval = this.data.delay;
 	                } else {
-	                    // We are somewhere in the middle of the path
-	                    // updating position
-	                    var p = this.curve.getPoint(i);
-	                    this.el.setAttribute('position', p);
+	                    // We are starting to move or somewhere in the middle of the path…
 	                    if (!this.el.is("moveonpath")) {
 	                        this.el.addState("moveonpath");
+	                        this.el.emit("movingstarted");
 	                    }
+
+	                    // …updating position
+	                    var p = this.curve.getPoint(i);
+	                    this.el.setAttribute('position', p);
 	                }
 
 	                // Update Rotation of Entity
