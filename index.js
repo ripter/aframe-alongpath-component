@@ -8,7 +8,7 @@ if (typeof AFRAME === 'undefined') {
  */
 AFRAME.registerComponent('alongpath', {
 
-    dependencies: ['curve'],
+    //dependencies: ['curve'],
 
     schema: {
         curve: {type: 'selector', default: ''},

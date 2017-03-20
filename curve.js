@@ -8,21 +8,28 @@ var degToRad = THREE.Math.degToRad;
 
 AFRAME.registerComponent('curve-point', {
 
-    dependencies: ['position'],
+    //dependencies: ['position'],
 
     schema: {},
+
+    init: function () {
+        this.el.addEventListener("componentchanged", this.changeHandler.bind(this));
+        this.el.emit("curve-point-change");
+    },
+
+    changeHandler: function(event) {
+        if (event.detail.name == "position") {
+            this.el.emit("curve-point-change");
+        }
+    }
 
 });
 
 AFRAME.registerComponent('curve', {
 
-    schema: {
+    //dependencies: ['curve-point'],
 
-        // CatmullRom
-        // Spline
-        // CubicBezier
-        // QuadraticBezier
-        // Line
+    schema: {
         type: {
             type: 'string',
             default: 'CatmullRom',
@@ -35,17 +42,15 @@ AFRAME.registerComponent('curve', {
     },
 
     init: function() {
-        this.points = Array.from(this.el.querySelectorAll("a-curve-point, [curve-point]"));
-
-        for (var i = 0; i < this.points.length; i++) {
-            this.points[i].addEventListener("componentchanged", this.update.bind(this));
-        }
-
-        this.ready = false;
-        this.curve = null;
     },
 
     update: function () {
+        this.remove();
+
+        this.el.addEventListener("curve-point-change", this.update.bind(this));
+
+        this.points = Array.from(this.el.querySelectorAll("a-curve-point, [curve-point]"));
+
         this.threeConstructor = THREE[this.data.type + 'Curve3'];
 
         if (this.points.length <= 1) {
@@ -86,6 +91,8 @@ AFRAME.registerComponent('curve', {
         this.curve = null;
         this.points = null;
         this.ready = false;
+
+        this.el.addEventListener("curve-point-change", this.update.bind(this));
     },
 
     closestPointInLocalSpace: function closestPoint(point, resolution, testPoint, currentRes) {
@@ -145,7 +152,7 @@ AFRAME.registerShader('line', {
 
 AFRAME.registerComponent('draw-curve', {
 
-    dependencies: ['curve', 'material'],
+    //dependencies: ['curve', 'material'],
 
     schema: {
         curve: {type: 'selector'}
@@ -158,8 +165,6 @@ AFRAME.registerComponent('draw-curve', {
     update: function () {
         if (this.data.curve) {
             this.curve = this.data.curve.components.curve;
-        } else if (this.components.curve.curve) {
-            this.curve = this.components.curve;
         }
 
         if (this.curve && this.curve.curve) {
@@ -185,7 +190,7 @@ AFRAME.registerComponent('draw-curve', {
 
 AFRAME.registerComponent('clone-along-curve', {
 
-    dependencies: ['curve'],
+    //dependencies: ['curve'],
 
     schema: {
         curve: {type: 'selector'},
@@ -207,22 +212,16 @@ AFRAME.registerComponent('clone-along-curve', {
 
     update: function () {
         this.remove();
+
         if (this.data.curve) {
             this.curve = this.data.curve.components.curve;
-        } else if (this.components.curve.curve) {
-            this.curve = this.components.curve;
         }
-    },
 
-    tick: function () {
-        if (!this.el.getObject3D('clones') && this.curve) {
-
+        if (!this.el.getObject3D('clones') && this.curve && this.curve.curve) {
             var mesh = this.el.getObject3D('mesh');
-
 
             var length = this.curve.curve.getLength();
             var start = 0;
-            var end = length;
             var counter = start;
 
             var cloneMesh = this.el.getOrCreateObject3D('clones', THREE.Group);
@@ -234,8 +233,7 @@ AFRAME.registerComponent('clone-along-curve', {
 
             parent.add(mesh);
 
-            while (counter < end) {
-
+            while (counter <= length) {
                 var child = parent.clone(true);
 
                 child.position.copy(this.curve.curve.getPointAt(counter / length));
@@ -253,7 +251,9 @@ AFRAME.registerComponent('clone-along-curve', {
 
     remove: function () {
         this.curve = null;
-        this.el.removeObject3D('clones');
+        if (this.el.getObject3D('clones')) {
+            this.el.removeObject3D('clones');
+        }
     }
 
 });
@@ -278,7 +278,6 @@ AFRAME.registerPrimitive('a-curve-point', {
 
 
 AFRAME.registerPrimitive('a-curve', {
-
     defaultComponents: {
         'curve': {}
     },
@@ -286,5 +285,4 @@ AFRAME.registerPrimitive('a-curve', {
     mappings: {
         type: 'curve.type',
     }
-
 });
