@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/protyze/aframe-alongpath-component#readme",
   "dependencies": {
-    "aframe": "^0.3.1"
+    "aframe": "0.x.x"
   },
   "devDependencies": {
     "browserify": "^12.0.1",
