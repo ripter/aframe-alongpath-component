@@ -1,3 +1,3 @@
-require('aframe');
+//require('aframe');
+require('aframe-curve-component');
 require('../index.js');
-require('../curve.js');
