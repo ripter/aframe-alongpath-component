@@ -50,88 +50,56 @@
 
 	/**
 	 * Alongpath component for A-Frame.
-	 * Move Entities along a predefined path
+	 * Move Entities along a predefined Curve
 	 */
 	AFRAME.registerComponent('alongpath', {
+
+	    //dependencies: ['curve'],
+
 	    schema: {
-	        // TODO: Parse path-points directly here
-	        path: {default: ''},
-	        closed: {default: false},
+	        curve: {type: 'selector', default: ''},
+	        triggers: {type: 'selectorAll', default: 'a-curve-point'},
+	        triggerRadius: {type: 'number', default: 0.01},
 	        dur: {default: 1000},
 	        delay: {default: 0},
 	        loop: {default: false},
-	        rotate: {default: false},
-	        inspect: {default: false}
+	        rotate: {default: false}
 	    },
 
 	    init: function () {
-	        this.initialPosition = this.el.getAttribute("position");
+
+	        // Not needed, because we fetch the curve on every tick anyways
+	        //this.data.curve.addEventListener('curve-updated', this.update.bind(this));
+
 	    },
 
 	    update: function (oldData) {
-
-	        // Only restart following the path when
-	        // Path-Data has been changed.
-	        if (!oldData.path || oldData.path != this.data.path) {
-	            this.curve = null;
-	            // Create Curve from Path
-	            this.createCurve();
+	        if (!this.data.curve) {
+	            console.warn("Curve not found. Can't follow anything...");
+	        } else {
+	            this.initialPosition = this.el.object3D.position;
 	        }
 
-	        // Create/Update Debug-Visuals when needed or
-	        // remove Debug-Visuals when disabled
-	        if (this.data.inspect && this.curve) {
-
-	            if (!oldData.inspect || oldData.inspect === false) {
-	                this.inspectorElementChanged = this.inspectorElementChanged.bind(this);
-
-	                // Add Elements to visualize the Path
-	                // and allow for path editing in the
-	                // A-Frame Inspector
-	                this.createInspectorElements();
-	            }
-
-	            // Update the Debug-Visuals
-	            this.drawCurveLine();
-	            this.synchInspectorElementPosition();
-
-	        } else if (oldData.inspect === true) {
-	            this.removeInspectorElements();
-	        }
-
+	        this.reset();
 	    },
 
-	    createCurve: function () {
-
-	        // TODO: Parse path-points in schema function
-	        this.pathpoints = this.data.path.split(' ').map(function (p) {
-	            p = p.split(',');
-	            return new THREE.Vector3(
-	                parseFloat(p[0]),
-	                parseFloat(p[1]),
-	                parseFloat(p[2])
-	            );
-	        });
-
-	        // Only create curve when there are more than 2 pathpoints
-	        if (this.pathpoints.length >= 2) {
-	            var curve = new THREE.CatmullRomCurve3(this.pathpoints);
-	            curve.closed = this.data.closed;
-
-	            this.curve = curve;
-	        } else {
-	            console.warn("The path needs at least 2 path-points!");
-	        }
-
+	    reset: function() {
 	        // Reset to initial state
 	        this.interval = 0;
-	        this.el.removeState("endofpath");
 
+	        this.el.removeState("endofpath");
+	        this.el.removeState("moveonpath");
+
+	        if (this.activeTrigger) {
+	            this.activeTrigger.removeState("alongpath-active-trigger");
+	            this.activeTrigger = null;
+	        }
 	    },
 
 	    tick: function (time, timeDelta) {
+	        var curve = this.data.curve.components.curve.curve;
 
-	        if (this.curve) {
+	        if (curve) {
 	            // Only update position if we didn't reach
 	            // the end of the path
 	            if (!this.el.is("endofpath")) {
@@ -159,11 +127,8 @@
 	                    this.el.emit("movingended");
 
 	                    // Set the end-position
-	                    if (this.data.closed) {
-	                        this.el.setAttribute('position', this.curve.points[0]);
-	                    } else {
-	                        this.el.setAttribute('position', this.curve.points[this.curve.points.length - 1]);
-	                    }
+	                    this.el.setAttribute('position', curve.points[curve.points.length - 1]);
+
 	                } else if ((this.data.loop === true) && i >= 1) {
 	                    // We have reached the end of the path
 	                    // but we are looping through the curve,
@@ -178,7 +143,7 @@
 	                    }
 
 	                    // …updating position
-	                    var p = this.curve.getPoint(i);
+	                    var p = curve.getPoint(i);
 	                    this.el.setAttribute('position', p);
 	                }
 
@@ -187,7 +152,7 @@
 	                if (this.data.rotate === true) {
 	                    var axis = new THREE.Vector3();
 	                    var up = new THREE.Vector3(0, 1, 0);
-	                    var tangent = this.curve.getTangentAt(i).normalize();
+	                    var tangent = curve.getTangentAt(i).normalize();
 
 	                    axis.crossVectors(up, tangent).normalize();
 
@@ -195,131 +160,51 @@
 
 	                    this.el.object3D.quaternion.setFromAxisAngle(axis, radians);
 	                }
+
+	                // Check for Active-Triggers
+	                if (this.data.triggers && (this.data.triggers.length > 0)) {
+	                    this.updateActiveTrigger();
+	                }
 	            }
 	        }
 
 	    },
 
 	    remove: function () {
-
-	        this.el.setAttribute("position", this.initialPosition);
-	        this.removeInspectorElements();
-
+	        this.el.object3D.position.copy(this.initialPosition);
 	    },
 
-	    createInspectorElements: function() {
-	        this.removeInspectorElements();
+	    updateActiveTrigger: function() {
+	        for (var i = 0; i < this.data.triggers.length; i++) {
+	            if (this.data.triggers[i].object3D) {
+	                if (this.data.triggers[i].object3D.position.distanceTo(this.el.object3D.position) <= this.data.triggerRadius) {
+	                    // If this element is not the active trigger, activate it - and if necessary deactivate other triggers.
+	                    if (this.activeTrigger && (this.activeTrigger != this.data.triggers[i])) {
+	                        this.activeTrigger.removeState("alongpath-active-trigger");
+	                        this.activeTrigger.emit("alongpath-trigger-deactivated");
 
-	        var debugRootElement = document.querySelector(".alongpath-debug-root");
+	                        this.activeTrigger = this.data.triggers[i];
+	                        this.activeTrigger.addState("alongpath-active-trigger");
+	                        this.activeTrigger.emit("alongpath-trigger-activated");
+	                    } else if (!this.activeTrigger) {
+	                        this.activeTrigger = this.data.triggers[i];
+	                        this.activeTrigger.addState("alongpath-active-trigger");
+	                        this.activeTrigger.emit("alongpath-trigger-activated");
+	                    }
 
-	        if (!debugRootElement) {
-	            var debugRoot = document.createElement("a-entity");
-	            debugRootElement = this.el.sceneEl.appendChild(debugRoot);
-	            debugRootElement.setAttribute("class", "alongpath-debug-root");
-	        }
-
-	        this.inspectorRootElement = debugRootElement;
-
-	        this.inspectorElements = new Array();
-
-	        for (var i = 0; i < this.pathpoints.length; i++) {
-	            var pathPoint = document.createElement("a-box");
-	            var pathPointEl = this.inspectorRootElement.appendChild(pathPoint);
-
-	            AFRAME.utils.entity.setComponentProperty(pathPointEl, "position", AFRAME.utils.coordinates.stringify(this.pathpoints[i]));
-	            AFRAME.utils.entity.setComponentProperty(pathPointEl, "width", 0.1);
-	            AFRAME.utils.entity.setComponentProperty(pathPointEl, "height", 0.1);
-	            AFRAME.utils.entity.setComponentProperty(pathPointEl, "depth", 0.1);
-	            AFRAME.utils.entity.setComponentProperty(pathPointEl, "color", "red");
-	            pathPointEl.setAttribute("class", "alongpath-debug");
-	            pathPointEl.setAttribute("visible", true);
-
-	            pathPointEl.addEventListener("componentchanged", this.inspectorElementChanged);
-
-	            this.inspectorElements.push(pathPointEl);
-	        }
-
-	        // First add a line
-	        this.drawCurveLine();
-	    },
-
-	    drawCurveLine: function() {
-	        if (this.inspectorCurve) {
-	            this.inspectorCurve.parentNode.removeChild(this.inspectorCurve);
-	        }
-
-	        var lineEntity = document.createElement("a-entity");
-	        var lineEntityEl = this.inspectorRootElement.appendChild(lineEntity);
-
-	        var lineMaterial = new THREE.LineBasicMaterial({
-	            color: "red"
-	        });
-
-	        var lineGeometry = new THREE.Geometry();
-	        lineGeometry.vertices = this.curve.getPoints(this.pathpoints.length * 10);
-
-	        lineEntityEl.setObject3D('mesh', new THREE.Line(lineGeometry, lineMaterial));
-
-	        lineEntityEl.setAttribute("className", "alongpath-debug");
-	        lineEntityEl.setAttribute("visible", true);
-
-	        this.inspectorCurve = lineEntityEl;
-	    },
-
-	    removeInspectorElements: function() {
-	        // Remove the Inspector-Boxes
-	        if(this.inspectorElements) {
-	            for (var i = 0; i < this.inspectorElements.length; i++) {
-	                this.inspectorElements[i].parentNode.removeChild(this.inspectorElements[i]);
-	            }
-	        }
-
-	        // Remove the curve
-	        if(this.inspectorCurve) {
-	            this.inspectorCurve.parentNode.removeChild(this.inspectorCurve);
-	        }
-
-	        // Remove also the Root Element if it has
-	        // no more children
-	        if (this.inspectorRootElement) {
-	            if(!this.inspectorRootElement.childNodes || this.inspectorRootElement.childNodes.length == 0) {
-	                if (this.inspectorRootElement.parentNode) {
-	                    this.inspectorRootElement.parentNode.removeChild(this.inspectorRootElement);
+	                    break;
+	                } else {
+	                    // If this Element was the active trigger, deactivate it
+	                    if (this.activeTrigger && (this.activeTrigger == this.data.triggers[i])) {
+	                        this.activeTrigger.removeState("alongpath-active-trigger");
+	                        this.activeTrigger.emit("alongpath-trigger-deactivated");
+	                        this.activeTrigger = null;
+	                    }
 	                }
-	                this.inspectorRootElement = null;
 	            }
-	        }
-
-	        this.inspectorElements = null;
-	        this.inspectorCurve = null;
-	    },
-
-	    synchInspectorElementPosition: function() {
-	        for (var i = 0; i < this.pathpoints.length; i++) {
-	            if (this.inspectorElements[i]) {
-	                AFRAME.utils.entity.setComponentProperty(this.inspectorElements[i], "position", AFRAME.utils.coordinates.stringify(this.pathpoints[i]));
-	            }
-	        }
-	    },
-
-	    inspectorElementChanged: function(e) {
-	        var newPathPoints = new Array();
-
-	        for (var i = 0; i < this.inspectorElements.length; i++) {
-	            if (this.inspectorElements[i].components.position.attrValue) {
-	                newPathPoints.push(this.inspectorElements[i].components.position.attrValue.x
-	                    + "," + this.inspectorElements[i].components.position.attrValue.y
-	                    + "," + this.inspectorElements[i].components.position.attrValue.z
-	                );
-	            }
-	        }
-
-	        var newPath = newPathPoints.join(" ");
-
-	        if (newPath != "" && newPath != this.data.path) {
-	            AFRAME.utils.entity.setComponentProperty(this.el, "alongpath.path", newPath);
 	        }
 	    }
+
 	});
 
 /***/ }
