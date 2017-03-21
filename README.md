@@ -1,21 +1,26 @@
 ## aframe-alongpath-component
 A component for [A-Frame](https://aframe.io) that allows entities to follow predefined paths.
 
-Thanks to https://jsbin.com/dasefeh/edit?html,output for the basic concept.
+New in Version 1.0.0:
 
-![](http://lab.immersiveweb.ch/assets/aframe-alongpath-component.gif)
+The alongpath component went through a refactoring process. The entire logic of creating curves/paths has been extracted into the [Curve component](https://github.com/protyze/aframe-curve-component). This allows for more flexibility and less complexity and refocusing solely on the task of moving objects along a path.
+
+With this Version it is now possible to promote single path-points to be "Trigger-Points" - meaning that they will fire an event as soon as the Entity moves past these points.
+
+
+![](http://lab.immersiveweb.ch/assets/aframe_alongpath_component.gif)
 
 ### Properties
 
 | Property | Description                                                                          | Default Value |
 | -------- | -----------                                                                          | ------------- |
-| path     | One or more point on the path the entity should follow (Format: "x,y,z x,y,z x,y,z") | ''            |
-| closed   | Whether or not the path should be closed automatically                               | false         |
+| curve    | Selector to reference to the corresponding [curve](https://github.com/protyze/aframe-curve-component) | ''            |
+| triggers   | Selector to identify the Trigger-Points that should fire the alongpath-trigger-activated-Event when the entity moves close to it.                               | 'a-curve-point'         |
+| triggerRadius   | Defines how close the entity should be to the Trigger-Point to activate it.                               | 0.01         |
 | dur      | Duration in milliseconds for the object to follow the entire path                    | 1000          |
 | delay    | Number of milliseconds to wait for the animation to begin                            | 2000          |
 | loop     | Whether or not the animation should loop                                             | false         |
 | rotate   | Whether or not the Entity should adjust it's rotation while moving along the path    | false         |
-| inspect  | Whether or not the animation path should be visible and editable in A-Frame Inspector| false         |
 
 ### Events
 
@@ -23,6 +28,8 @@ Thanks to https://jsbin.com/dasefeh/edit?html,output for the basic concept.
 | -------- | -----------                                                 |
 | movingstarted     | The Entity is about to start moving along the path |
 | movingended   | The Entity has completed moving along the path         |
+| alongpath-trigger-activated   | The Entity has activated a Trigger-Point (Fired on the corresponding 'curve-point') |
+| alongpath-trigger-deactivated   | The Entity has deactivated a Trigger-Point (Fired on the corresponding 'curve-point')          |
 
 ### States
 
@@ -30,10 +37,11 @@ Thanks to https://jsbin.com/dasefeh/edit?html,output for the basic concept.
 | -------- | -----------                                      |
 | moveonpath     | The Entity currently moving along the path |
 | endofpath   | The Entity has completed moving along the path|
+| alongpath-active-trigger   | The moving entity has activated a Trigger-Point (which has now this active state) |
 
 ### Usage with A-Frame Inspector
 
-You can use the [A-Frame Inspector](https://github.com/aframevr/aframe-inspector) to manually modify the predefined paths. To do so, you can open the Inspector as usual, then set the "inspector" Property to true. This will cause the path to be displayed visually as a line while the predefined path-points (received from the "path"-Property) are showed as a small box. You can now change the path in the inspector by selecting one of the boxes and changing its position using the transformation tools of the editor. The path will change instantly.
+You can use the [A-Frame Inspector](https://github.com/aframevr/aframe-inspector) to manually modify the predefined paths. To do so, you can open the Inspector as usual, and start moving around the a-curve-point Entities of the curve. The path will change instantly.
 
 ![](http://lab.immersiveweb.ch/assets/aframe-alongpath-component-inspector.gif)
 
@@ -73,3 +81,5 @@ Then register and use.
 require('aframe');
 require('aframe-alongpath-component');
 ```
+
+Thanks to https://jsbin.com/dasefeh/edit?html,output for the basic concept.
