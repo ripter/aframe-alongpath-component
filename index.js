@@ -17,7 +17,8 @@ AFRAME.registerComponent('alongpath', {
         dur: {default: 1000},
         delay: {default: 0},
         loop: {default: false},
-        rotate: {default: false}
+        rotate: {default: false},
+        resetonplay: {default:true}
     },
 
     init: function () {
@@ -122,6 +123,12 @@ AFRAME.registerComponent('alongpath', {
             }
         }
 
+    },
+
+    play: function () {
+        if (this.data.resetonplay) {
+            this.reset();
+        }
     },
 
     remove: function () {

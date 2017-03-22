@@ -21,6 +21,7 @@ With this Version it is now possible to promote single path-points to be "Trigge
 | delay    | Number of milliseconds to wait for the animation to begin                            | 2000          |
 | loop     | Whether or not the animation should loop                                             | false         |
 | rotate   | Whether or not the Entity should adjust it's rotation while moving along the path    | false         |
+| resetonplay   | Whether or not the Movement on the path should be reset on the play event    | true         |
 
 ### Events
 
