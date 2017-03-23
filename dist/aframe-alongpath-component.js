@@ -77,7 +77,7 @@
 	    update: function (oldData) {
 
 	        this.curve = document.querySelector(this.data.curve);
-	        this.triggers = this.el.querySelectorAll(this.data.triggers);
+	        this.triggers = this.curve.querySelectorAll(this.data.triggers);
 
 	        if (!this.curve) {
 	            console.warn("Curve not found. Can't follow anything...");
