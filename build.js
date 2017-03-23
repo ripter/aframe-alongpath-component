@@ -16,8 +16,8 @@ AFRAME.registerComponent('alongpath', {
     //dependencies: ['curve'],
 
     schema: {
-        curve: {type: 'selector', default: ''},
-        triggers: {type: 'selectorAll', default: 'a-curve-point'},
+        curve: {default: ''},
+        triggers: {default: 'a-curve-point'},
         triggerRadius: {type: 'number', default: 0.01},
         dur: {default: 1000},
         delay: {default: 0},
@@ -28,13 +28,17 @@ AFRAME.registerComponent('alongpath', {
 
     init: function () {
 
-        // Not needed, because we fetch the curve on every tick anyways
-        //this.data.curve.addEventListener('curve-updated', this.update.bind(this));
+        // We have to fetch curve and triggers manually because of an A-FRAME ISSUE
+        // with Property-Type "Selector" / "SelectorAll": https://github.com/aframevr/aframe/issues/2517
 
     },
 
     update: function (oldData) {
-        if (!this.data.curve) {
+
+        this.curve = document.querySelector(this.data.curve);
+        this.triggers = this.el.querySelectorAll(this.data.triggers);
+
+        if (!this.curve) {
             console.warn("Curve not found. Can't follow anything...");
         } else {
             this.initialPosition = this.el.object3D.position;
@@ -57,7 +61,7 @@ AFRAME.registerComponent('alongpath', {
     },
 
     tick: function (time, timeDelta) {
-        var curve = this.data.curve.components.curve.curve;
+        var curve = this.curve.components.curve.curve;
 
         if (curve) {
             // Only update position if we didn't reach
@@ -80,15 +84,14 @@ AFRAME.registerComponent('alongpath', {
                 }
 
                 if ((this.data.loop === false) && i >= 1) {
+                    // Set the end-position
+                    this.el.setAttribute('position', curve.points[curve.points.length - 1]);
+
                     // We have reached the end of the path and are not going
                     // to loop back to the beginning therefore set final state
                     this.el.removeState("moveonpath");
                     this.el.addState("endofpath");
                     this.el.emit("movingended");
-
-                    // Set the end-position
-                    this.el.setAttribute('position', curve.points[curve.points.length - 1]);
-
                 } else if ((this.data.loop === true) && i >= 1) {
                     // We have reached the end of the path
                     // but we are looping through the curve,
@@ -122,7 +125,7 @@ AFRAME.registerComponent('alongpath', {
                 }
 
                 // Check for Active-Triggers
-                if (this.data.triggers && (this.data.triggers.length > 0)) {
+                if (this.triggers && (this.triggers.length > 0)) {
                     this.updateActiveTrigger();
                 }
             }
@@ -141,19 +144,19 @@ AFRAME.registerComponent('alongpath', {
     },
 
     updateActiveTrigger: function() {
-        for (var i = 0; i < this.data.triggers.length; i++) {
-            if (this.data.triggers[i].object3D) {
-                if (this.data.triggers[i].object3D.position.distanceTo(this.el.object3D.position) <= this.data.triggerRadius) {
+        for (var i = 0; i < this.triggers.length; i++) {
+            if (this.triggers[i].object3D) {
+                if (this.triggers[i].object3D.position.distanceTo(this.el.object3D.position) <= this.data.triggerRadius) {
                     // If this element is not the active trigger, activate it - and if necessary deactivate other triggers.
-                    if (this.activeTrigger && (this.activeTrigger != this.data.triggers[i])) {
+                    if (this.activeTrigger && (this.activeTrigger != this.triggers[i])) {
                         this.activeTrigger.removeState("alongpath-active-trigger");
                         this.activeTrigger.emit("alongpath-trigger-deactivated");
 
-                        this.activeTrigger = this.data.triggers[i];
+                        this.activeTrigger = this.triggers[i];
                         this.activeTrigger.addState("alongpath-active-trigger");
                         this.activeTrigger.emit("alongpath-trigger-activated");
                     } else if (!this.activeTrigger) {
-                        this.activeTrigger = this.data.triggers[i];
+                        this.activeTrigger = this.triggers[i];
                         this.activeTrigger.addState("alongpath-active-trigger");
                         this.activeTrigger.emit("alongpath-trigger-activated");
                     }
@@ -161,7 +164,7 @@ AFRAME.registerComponent('alongpath', {
                     break;
                 } else {
                     // If this Element was the active trigger, deactivate it
-                    if (this.activeTrigger && (this.activeTrigger == this.data.triggers[i])) {
+                    if (this.activeTrigger && (this.activeTrigger == this.triggers[i])) {
                         this.activeTrigger.removeState("alongpath-active-trigger");
                         this.activeTrigger.emit("alongpath-trigger-deactivated");
                         this.activeTrigger = null;
