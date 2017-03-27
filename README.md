@@ -55,15 +55,19 @@ Install and use by directly including the [browser files](dist):
 ```html
 <head>
   <title>My A-Frame Scene</title>
-  <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
+  <script src="https://rawgit.com/aframevr/aframe/master/dist/aframe-master.min.js"></script>
   <script src="https://rawgit.com/protyze/aframe-alongpath-component/master/dist/aframe-alongpath-component.min.js"></script>
 </head>
 
 <body>
   <a-scene>
-    <a-sphere color="red" radius="0.25" position="0 0 0"
-              alongpath="path:2,2,-5 -2,1,-2.5 0,1,-1; closed:false; dur:5000; delay:4000; inspect:false;">
-    </a-sphere>
+    <a-curve id="track1">
+      <a-curve-point position="-2 2 -3"></a-curve-point>
+      <a-curve-point position="0 1 -3"></a-curve-point>
+      <a-curve-point position="2 2 -3"></a-curve-point>
+    </a-curve>
+    
+    <a-box alongpath="curve: #track1"></a-box>
   </a-scene>
 </body>
 ```
@@ -80,6 +84,7 @@ Then register and use.
 
 ```js
 require('aframe');
+require('aframe-curve-component');
 require('aframe-alongpath-component');
 ```
 
