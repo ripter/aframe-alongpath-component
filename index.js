@@ -56,7 +56,7 @@ AFRAME.registerComponent('alongpath', {
     },
 
     tick: function (time, timeDelta) {
-        var curve = this.curve.components.curve.curve;
+        var curve = this.curve.components['curve'] ? this.curve.components['curve'].curve : null;
 
         if (curve) {
             // Only update position if we didn't reach
@@ -124,8 +124,9 @@ AFRAME.registerComponent('alongpath', {
                     this.updateActiveTrigger();
                 }
             }
+        } else {
+            console.error("The entity associated with the curve property has no curve component.");
         }
-
     },
 
     play: function () {

@@ -42,7 +42,7 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports) {
+/***/ (function(module, exports) {
 
 	if (typeof AFRAME === 'undefined') {
 	    throw new Error('Component attempted to register before AFRAME was available.');
@@ -102,7 +102,7 @@
 	    },
 
 	    tick: function (time, timeDelta) {
-	        var curve = this.curve.components.curve.curve;
+	        var curve = this.curve.components['curve'] ? this.curve.components['curve'].curve : null;
 
 	        if (curve) {
 	            // Only update position if we didn't reach
@@ -170,8 +170,9 @@
 	                    this.updateActiveTrigger();
 	                }
 	            }
+	        } else {
+	            console.error("The entity associated with the curve property has no curve component.");
 	        }
-
 	    },
 
 	    play: function () {
@@ -217,5 +218,5 @@
 
 	});
 
-/***/ }
+/***/ })
 /******/ ]);
