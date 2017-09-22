@@ -1,5 +1,5 @@
 {
-  "name": "aframe-alongpath-component",
+  "name": "@ripter/aframe-alongpath-component",
   "version": "1.0.5",
   "description": "A-Frame Component that allows entities to follow predefined paths",
   "main": "index.js",
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/protyze/aframe-alongpath-component.git"
+    "url": "git+https://github.com/ripter/aframe-alongpath-component.git"
   },
   "keywords": [
     "aframe",
@@ -28,12 +28,12 @@
     "mozvr",
     "webvr"
   ],
-  "author": "protyze <jan.azzati@gmail.com>",
-  "license": "GPL-3.0",
+  "author": "Chris Richards (ripter)",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/protyze/aframe-alongpath-component/issues"
+    "url": "https://github.com/ripter/aframe-alongpath-component/issues"
   },
-  "homepage": "https://github.com/protyze/aframe-alongpath-component#readme",
+  "homepage": "https://github.com/ripter/aframe-alongpath-component#readme",
   "dependencies": {
     "aframe": "^0.6.0",
     "aframe-curve-component": "^0.1.3"
