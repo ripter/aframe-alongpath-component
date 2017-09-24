@@ -10,7 +10,7 @@ AFRAME.registerComponent('alongpath', {
   schema: {
     curve: {default: ''},
     triggers: {default: 'a-curve-point'},
-    triggerRadius: {type: 'number', default: 0.01},
+    triggerRadius: {type: 'number', default: 0.5},
     dur: {default: 1000},
     delay: {default: 0},
     loop: {default: false},
@@ -26,7 +26,8 @@ AFRAME.registerComponent('alongpath', {
 
   update: function (oldData) {
     this.curve = document.querySelector(this.data.curve);
-    this.triggers = this.curve.querySelectorAll(this.data.triggers);
+    const triggers = this.curve.querySelectorAll(this.data.triggers);
+
 
     if (!this.curve) {
       console.warn("Curve not found. Can't follow anything...");
@@ -34,6 +35,7 @@ AFRAME.registerComponent('alongpath', {
       this.initialPosition = this.el.object3D.position;
     }
 
+    this.triggers = Array.from(triggers);
     this.reset('update');
   },
 
@@ -162,34 +164,56 @@ AFRAME.registerComponent('alongpath', {
   },
 
   updateActiveTrigger: function() {
-    for (var i = 0; i < this.triggers.length; i++) {
-      if (this.triggers[i].object3D) {
-        if (this.triggers[i].object3D.position.distanceTo(this.el.object3D.position) <= this.data.triggerRadius) {
-          // If this element is not the active trigger, activate it - and if necessary deactivate other triggers.
-          if (this.activeTrigger && (this.activeTrigger != this.triggers[i])) {
-            this.activeTrigger.removeState("alongpath-active-trigger");
-            this.activeTrigger.emit("alongpath-trigger-deactivated");
+    const { el, triggers, lastTrigger } = this;
+    const { triggerRadius } = this.data;
+    const activeTrigger = triggers.find((item) => {
+      // short version
+      return item.object3D.position.distanceTo(el.object3D.position) <= triggerRadius;
+    });
 
-            this.activeTrigger = this.triggers[i];
-            this.activeTrigger.addState("alongpath-active-trigger");
-            this.activeTrigger.emit("alongpath-trigger-activated");
-          } else if (!this.activeTrigger) {
-            this.activeTrigger = this.triggers[i];
-            this.activeTrigger.addState("alongpath-active-trigger");
-            this.activeTrigger.emit("alongpath-trigger-activated");
-          }
-
-          break;
-        } else {
-          // If this Element was the active trigger, deactivate it
-          if (this.activeTrigger && (this.activeTrigger == this.triggers[i])) {
-            this.activeTrigger.removeState("alongpath-active-trigger");
-            this.activeTrigger.emit("alongpath-trigger-deactivated");
-            this.activeTrigger = null;
-          }
-        }
-      }
+    // if we found an active trigger
+    // Emit the event
+    // dedup so we don't re-emit the event
+    if (activeTrigger && lastTrigger !== activeTrigger) {
+      // this.data.lastTrigger = activeTrigger;
+      this.lastTrigger = activeTrigger;
+      activeTrigger.emit('alongpath-trigger-activated');
     }
-  }
+    else if (!activeTrigger && lastTrigger) {
+      this.lastTrigger = null;
+    }
 
+    // for (var i = 0; i < this.triggers.length; i++) {
+    //   if (this.triggers[i].object3D) {
+    //     if (this.triggers[i].object3D.position.distanceTo(this.el.object3D.position) <= this.data.triggerRadius) {
+    //       // If this element is not the active trigger, activate it - and if necessary deactivate other triggers.
+    //       if (this.activeTrigger && (this.activeTrigger != this.triggers[i])) {
+    //         this.activeTrigger.removeState("alongpath-active-trigger");
+    //         console.log('alongpath 9', 'alongpath-trigger-deactivated');
+    //         this.activeTrigger.emit("alongpath-trigger-deactivated");
+    //
+    //         this.activeTrigger = this.triggers[i];
+    //         this.activeTrigger.addState("alongpath-active-trigger");
+    //         console.log('alongpath 1', 'alongpath-trigger-activated');
+    //         this.activeTrigger.emit("alongpath-trigger-activated");
+    //       } else if (!this.activeTrigger) {
+    //         this.activeTrigger = this.triggers[i];
+    //         this.activeTrigger.addState("alongpath-active-trigger");
+    //         console.log('alongpath 2', 'alongpath-trigger-activated');
+    //         this.activeTrigger.emit("alongpath-trigger-activated");
+    //       }
+    //
+    //       break;
+    //     } else {
+    //       // If this Element was the active trigger, deactivate it
+    //       if (this.activeTrigger && (this.activeTrigger == this.triggers[i])) {
+    //         this.activeTrigger.removeState("alongpath-active-trigger");
+    //         console.log('alongpath 8', 'alongpath-trigger-deactivated');
+    //         this.activeTrigger.emit("alongpath-trigger-deactivated");
+    //         this.activeTrigger = null;
+    //       }
+    //     }
+    // }
+    // }
+  }
 });
