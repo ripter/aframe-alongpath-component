@@ -16,18 +16,10 @@ AFRAME.registerComponent('alongpath', {
     loop: {default: false},
     rotate: {default: false},
     resetonplay: {default:true},
-    autoplay: {default:true},
+    isPlaying:{default: true},
   },
 
   init: function () {
-    const { autoplay } = this.data;
-
-    if (autoplay) {
-      this.data.isPlaying = true;
-    }
-    else {
-      this.data.isPlaying = false;
-    }
   },
 
   update: function (oldData) {
@@ -40,10 +32,11 @@ AFRAME.registerComponent('alongpath', {
       this.initialPosition = this.el.object3D.position;
     }
 
-    this.reset();
+    this.reset('update');
   },
 
-  reset: function() {
+  reset: function(source) {
+    console.log('along.reset', source, this);
     // Reset to initial state
     this.interval = 0;
 
@@ -135,8 +128,9 @@ AFRAME.registerComponent('alongpath', {
   },
 
   play: function () {
+    console.log('alongpath.play', arguments, this);
     if (this.data.resetonplay) {
-      this.reset();
+      this.reset('play');
     }
   },
 
