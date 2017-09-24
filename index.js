@@ -17,6 +17,8 @@ AFRAME.registerComponent('alongpath', {
     rotate: {default: false},
     resetonplay: {default:true},
     isPlaying:{default: true},
+    canReverse:{default: true},
+    isReversing:{default: false},
   },
 
   init: function () {
@@ -36,7 +38,6 @@ AFRAME.registerComponent('alongpath', {
   },
 
   reset: function(source) {
-    console.log('along.reset', source, this);
     // Reset to initial state
     this.interval = 0;
 
@@ -69,6 +70,8 @@ AFRAME.registerComponent('alongpath', {
 
   tick: function (time, timeDelta) {
     if (!this.data.isPlaying) { return; }
+    const { isReversing, canReverse } = this.data;
+    let isLastFrame = false;
 
     var curve = this.curve.components['curve'] ? this.curve.components['curve'].curve : null;
 
@@ -78,9 +81,26 @@ AFRAME.registerComponent('alongpath', {
       if (!this.el.is("endofpath")) {
         this.interval = this.interval + timeDelta;
 
-        var i = this.getI_(this.interval, this.data.delay, this.data.dur)
+        // i is a percent of the animation to render.
+        // a value between 0 - 1
+        var i = this.getI_(this.interval, this.data.delay, this.data.dur);
+        isLastFrame = i >= 1;
 
-        if ((this.data.loop === false) && i >= 1) {
+        // Last frame and we can reverse, do it!
+        if (isLastFrame && !isReversing && canReverse) {
+          this.data.isReversing = true;
+        }
+        else if (isLastFrame && isReversing && canReverse) {
+          this.data.isReversing = false;
+        }
+
+        // if we are on the last frame
+        if (isReversing) {
+          i = 1 - i;
+        }
+
+        // not looping, end of path
+        if (isLastFrame && (this.data.loop === false)) {
           // Set the end-position
           this.el.setAttribute('position', curve.points[curve.points.length - 1]);
 
@@ -89,7 +109,9 @@ AFRAME.registerComponent('alongpath', {
           this.el.removeState("moveonpath");
           this.el.addState("endofpath");
           this.el.emit("movingended");
-        } else if ((this.data.loop === true) && i >= 1) {
+        }
+        // looping, end of path
+        else if (isLastFrame && (this.data.loop === true)) {
           // We have reached the end of the path
           // but we are looping through the curve,
           // so restart here.
@@ -128,7 +150,6 @@ AFRAME.registerComponent('alongpath', {
   },
 
   play: function () {
-    console.log('alongpath.play', arguments, this);
     if (this.data.resetonplay) {
       this.reset('play');
     }
