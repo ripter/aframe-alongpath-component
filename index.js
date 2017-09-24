@@ -86,15 +86,17 @@ AFRAME.registerComponent('alongpath', {
         var i = this.getI_(this.interval, this.data.delay, this.data.dur);
         isLastFrame = i >= 1;
 
-        // Last frame and we can reverse, do it!
+        // Last Frame when moving forward
         if (isLastFrame && !isReversing && canReverse) {
           this.data.isReversing = true;
         }
+        // Last Frame when moving backwards
         else if (isLastFrame && isReversing && canReverse) {
           this.data.isReversing = false;
         }
 
-        // if we are on the last frame
+        // i is a percentage complete
+        // For reversing, we just invert the percent so it animates backwards
         if (isReversing) {
           i = 1 - i;
         }

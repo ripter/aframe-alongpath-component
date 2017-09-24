@@ -1,6 +1,6 @@
 {
   "name": "@ripter/aframe-alongpath-component",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A-Frame Component that allows entities to follow predefined paths",
   "main": "index.js",
   "scripts": {},
